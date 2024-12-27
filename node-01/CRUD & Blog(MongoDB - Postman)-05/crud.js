@@ -1,17 +1,20 @@
 const express = require('express')
 const cors = require("cors");
 const userRoutes = require("./src/routes/users");
-const { default: mongoose } = require('mongoose');
+// const { default: mongoose } = require('mongoose');
+const blogRoute = require("./src/routes/blog");
+const mongoose = require("mongoose");
 
 const app = express();
 const PORT = 8000;
 
 app.use(express.json());
 
-// app.use(cors());
-app.use(cors({ origin: '*' }));
+app.use(cors());
+// app.use(cors({ origin: '*' }));
 
 app.use("/user", userRoutes);
+app.use("/blog", blogRoute);
 
 app.listen(PORT , async () => {
     await mongoose.connect("mongodb://127.0.0.1:27017/crud")

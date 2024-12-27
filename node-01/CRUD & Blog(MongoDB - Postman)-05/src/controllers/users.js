@@ -1,4 +1,4 @@
-const { User,users} = require("../models/users");
+const {User} = require("../models/users");
 
 // For getting data
 
@@ -100,9 +100,35 @@ const deleteUser = async (req,res) => {
         await User.deleteOne({ _id: user_id});
         return res.status(202).json({
             msg : "User is Removed Successfully",
-        })
+        });
     };
+};
+
+
+const loginUser = async (req,res) => {
+    const {username,password} = req.body;
+
+    if(!username) return res.json({msg: "Please Enter UserName"});
+
+    if(!password) return res.json({msg: "Please Enter Password"});
+
+    const user = await User.findOne({username});
+
+    if(!user) return res.json({msg: "User not Found"});
+
+    if(user.password !== password) return res.json ({msg: "Password is wrong"});
+
+    res.json({
+        msg: "User Logged in Successfully",
+    });
+};
+
+
+module.exports = {
+    getUser, 
+    getUsers, 
+    createUser, 
+    updateUser, 
+    deleteUser, 
+    loginUser,
 }
-
-
-module.exports = {getUser, getUsers, createUser, updateUser, deleteUser}
