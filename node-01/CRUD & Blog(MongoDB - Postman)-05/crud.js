@@ -4,6 +4,7 @@ const userRoutes = require("./src/routes/users");
 // const { default: mongoose } = require('mongoose');
 const blogRoute = require("./src/routes/blog");
 const mongoose = require("mongoose");
+const path = require("path");
 
 const app = express();
 const PORT = 8000;
