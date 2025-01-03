@@ -1,4 +1,5 @@
 const {User} = require("../models/users");
+const jwt = require("jsonwebtoken");
 
 // For getting data
 
@@ -118,7 +119,13 @@ const loginUser = async (req,res) => {
 
     if(user.password !== password) return res.json ({msg: "Password is wrong"});
 
+
+    // Auth Token : [Example] - afdgafdgg145sg4weg44qe54ga54fa5g4sg4dgdsget0ef0ddf
+
+    const token = jwt.sign({ data: user._id, user: user.username}, "privateKey");
+
     res.json({
+        token: token,
         msg: "User Logged in Successfully",
     });
 };

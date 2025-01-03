@@ -6,10 +6,11 @@ const {getBlogs,
     deleteBlog
 } = require("../controllers/blog");
 const upload = require("../middleware/uploadFile");
+const authToken = require("../middleware/authToken");
 
 const blogRoute = express.Router();
 
-blogRoute.get ("/", getBlogs);
+blogRoute.get ("/", authToken ,getBlogs);
 
 blogRoute.post("/", upload.single("image"), createBlog);
 
