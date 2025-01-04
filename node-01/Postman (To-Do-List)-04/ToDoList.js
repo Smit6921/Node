@@ -1,102 +1,115 @@
 const express = require('express')
-const app = express()
+const app = express();
+const mongoose = require("mongoose");
 
 app.use(express.json());
 
+const PORT = 8000;
+
 const lists = [];
 
-
-// For Getting the Data
-app.get("/work", (req,res) => {
-    res.json({
-        lists : lists,
-    });
+const taskSchema = new mongoose.Schema({
+    title: String,
+    task: String,
+    done: String,
 });
 
-// For Creating User or Data
-app.post("/work",(req,res) => {
-    lists.push(req.body);
-    res.status(201).json({
-        msg : "Your List is Added Successfully !!",
-    });
-});
+const Task = mongoose.model('Task', taskSchema);
 
 
-// For Getting Single Data
-app.get("/work/:work_id", (req,res) => {
-    const work_id = Number(req.params["work_id"]);
+// For Getting the Data  
+app.get("/work", async (req, res) => {  
+    try {  
+        const tasks = await Task.find();  
+        res.json({ 
+            lists: tasks, 
+        });  
+    } catch (err) {  
+        res.status(500).json({ 
+            msg: 'Internal Server Error', 
+        });  
+    }  
+}); 
 
-    if(isNaN(work_id)) {
-        return res.status(404).json({
-            msg : "Invalid URL",
-        });
-    } else if (!lists[work_id]) {
-        return res.status(404).json({
-            msg : "Task is Not Exist",
-        });
-    }
-    else {
-        return res.status(201).json({
-            work : lists[work_id]
-        });
-    };
-});
-
-
-// For Delete the single data
-app.delete("/work/:work_id", (req,res) => {
-    const work_id = Number(req.params["work_id"]);
-
-    if(isNaN(work_id)) {
-        return res.status(404).json({
-            msg : "Invalid URL",
-        });
-    } else if (!lists[work_id]) {
-        return res.status(404).json({
-            msg : "Task is not exist",
-        });
-    }
-    else {
-        delete lists[work_id];
-        return res.status(204).json({
-            msg : "Task is Removed Successfully",
-        })
-    };
-});
+// For Creating User or Data  
+app.post("/work", async (req, res) => {  
+    try {  
+        const newTask = new Task(req.body);  
+        await newTask.save();  
+        res.status(201).json({ 
+            msg: "Your List is Added Successfully !!",
+        });  
+    } catch (err) {  
+        res.status(400).json({ 
+            msg: 'Bad Request', error: err.message,
+        });  
+    }  
+}); 
 
 
-// For Update tha Data of Single User
-app.put("/work/:work_id",(req,res) => {
-    const work_id = Number(req.params["work_id"]);
-
-    const work_data = req.body;
-
-    if (isNaN(work_id)) {
-        return res.status(404).json({
-            msg : "Invalid URL",
-        });
-    } else if (!lists[work_id]) {
-        return res.status(404).json({
-            msg : "Task is Not Exist",
-        });
-    } else {
-        if (work_data["title"]) {
-            lists[work_id]["title"] = work_data["title"];
-        }
-
-        if (work_data["task"]) {
-            lists[work_id]["task"] = work_data["task"];
-        }
-
-        if (work_data["done"]) {
-            lists[work_id]["done"] = work_data["done"];
-        }
-
-        return res.status(202).json({
-            msg : "Task has been Updated Successfully"
-        });
-    };
+// For Getting Single Data  
+app.get("/work/:work_id", async (req, res) => {  
+    try {  
+        const task = await Task.findById(req.params.work_id);  
+        if (!task) {  
+            return res.status(404).json({ 
+                msg: "Task does not exist", 
+            });  
+        }  
+        return res.status(200).json({ 
+            work: task,
+        });  
+    } catch (err) {  
+        res.status(500).json({ 
+            msg: 'Internal Server Error', 
+        });  
+    }  
 });
 
 
-app.listen(8000)
+// For Deleting a single data  
+app.delete("/work/:work_id", async (req, res) => {  
+    try {  
+        const task = await Task.findByIdAndDelete(req.params.work_id);  
+        if (!task) {  
+            return res.status(404).json({ 
+                msg: "Task does not exist", 
+            });  
+        }  
+        return res.status(204).json({ 
+            msg: "Task is removed successfully.", 
+        });  
+    } catch (err) {  
+        res.status(500).json({ 
+            msg: 'Internal Server Error', 
+        });  
+    }  
+});
+
+
+// For Updating the Data of Single User  
+app.put("/work/:work_id", async (req, res) => {  
+    try {  
+        const task = await Task.findByIdAndUpdate(req.params.work_id, req.body, { new: true });  
+        if (!task) {  
+            return res.status(404).json({ 
+                msg: "Task does not exist", 
+            });  
+        }  
+        return res.status(200).json({ 
+            msg: "Task has been updated successfully", 
+        });  
+    } catch (err) {  
+        res.status(400).json({ 
+            msg: 'Bad Request', error: err.message, 
+        });  
+    }  
+}); 
+
+app.listen(PORT , async () => {
+    await mongoose.connect("mongodb://127.0.0.1:27017/to-do-list")
+    .then(() => console.log("DB connected"))  
+    .catch((err) => console.error("DB connection error:", err));
+    // console.log("DB connected");
+    console.log(`server is running on http://localhost:${PORT}`);
+});
