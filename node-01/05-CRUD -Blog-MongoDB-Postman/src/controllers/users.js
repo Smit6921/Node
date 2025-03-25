@@ -1,5 +1,8 @@
 const {User} = require("../models/users");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const {sendEmail} = require("../config/email_config");
+const {OTP_DATA} = require("../config/email_temp");
 
 // For getting data
 
@@ -32,17 +35,20 @@ const getUser = async (req,res) => {
 }
 
 // For create user
+const soltValue = bcrypt.genSaltSync();
 
 const createUser = async (req, res) => {
     try {
-        const {username , password, ...userData} = req.body;
-
-        await User.create({ username: username, password: password});
+        const {username , password,email, ...userData} = req.body;
+        const age = userData["age"] || null
+        const hashPassword = bcrypt.hashSync(password, soltValue)
+        await User.create({ username: username, password: hashPassword, age: age});
 
         res.status(201).json({
             msg:"user added",
         });
     } catch (error) {
+        console.error(error)
         res.status(500).json({
             msg:"intrnal server error",
             error:error,
@@ -117,7 +123,9 @@ const loginUser = async (req,res) => {
 
     if(!user) return res.json({msg: "User not Found"});
 
-    if(user.password !== password) return res.json ({msg: "Password is wrong"});
+    const isValidPass = bcrypt.compareSync(password, user.password)
+
+    if(isValidPass) return res.json ({msg: "Password is wrong"});
 
 
     // Auth Token : [Example] - afdgafdgg145sg4weg44qe54ga54fa5g4sg4dgdsget0ef0ddf
@@ -131,6 +139,46 @@ const loginUser = async (req,res) => {
 };
 
 
+const otp_data = {}
+
+const generateOTP = async (req, res) => {
+
+    try {
+        const to = req.body["email"]
+        const username = req.body["username"]
+
+        const user = await User.findOne({ username: username })
+        if (!user) {
+            return res.json({
+                msg: "user not found"
+            })
+        } else {
+            let subject = OTP_DATA["OTP_SUBJECT"];
+            let html_1 = OTP_DATA["OTP_HTML_1"];
+            let html_2 = OTP_DATA["OTP_HTML_2"];
+
+            let otp = Math.round(Math.random() * 9000);
+
+            otp_data[to] = { otp: otp, time: Date.now() };
+
+            let html = `${html_1} ${otp} ${html_2}`
+
+            sendEmail(to, subject, html)
+
+            console.log(otp_data)
+            return res.json({
+                msg: "otp send"
+            })
+        }
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({
+            "msg": "Error in generating OTP"
+        })
+    }
+}
+
+
 module.exports = {
     getUser, 
     getUsers, 
@@ -138,4 +186,5 @@ module.exports = {
     updateUser, 
     deleteUser, 
     loginUser,
+    generateOTP
 }

@@ -7,6 +7,7 @@ const {
     updateUser,
     deleteUser,
     loginUser,
+    generateOTP
 } = require("../controllers/users");
 
 
@@ -23,5 +24,7 @@ userRoutes.put("/:user_id", updateUser);
 userRoutes.delete("/:user_id", deleteUser);
 
 userRoutes.post("/login", loginUser);
+
+userRoutes.post("/sendOtp", generateOTP);
 
 module.exports = userRoutes;

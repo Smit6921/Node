@@ -16,9 +16,11 @@ const getBlogs = async (req,res) => {
 
 // To Create Blogs
 const createBlog = (req,res) => {
-
-    const image = req.file.filename;
-
+    let image = ""
+    if(req.file?.filename){
+        image = req.file.filename;
+    }
+    
     const {title,content,tags} = req.body;
 
     Blog.create({title,content,tags, image});
