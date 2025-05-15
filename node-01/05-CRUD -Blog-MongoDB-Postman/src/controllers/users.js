@@ -125,7 +125,7 @@ const loginUser = async (req,res) => {
 
     const isValidPass = bcrypt.compareSync(password, user.password)
 
-    if(isValidPass) return res.json ({msg: "Password is wrong"});
+    if(!isValidPass) return res.json ({msg: "Password is wrong"});
 
 
     // Auth Token : [Example] - afdgafdgg145sg4weg44qe54ga54fa5g4sg4dgdsget0ef0ddf
