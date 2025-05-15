@@ -125,7 +125,7 @@ const loginUser = async (req,res) => {
 
     const isValidPass = bcrypt.compareSync(password, user.password)
 
-    if(isValidPass) return res.json ({msg: "Password is wrong"});
+    if(!isValidPass) return res.json ({msg: "Password is wrong"});
 
     const token = jwt.sign({ data: user._id, user: user.username}, "privateKey");
 
